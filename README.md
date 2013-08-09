@@ -25,31 +25,39 @@ The Spree admin page suits most purposes but we have some ideas that we want
 to override or replace to the existing experience. First we will examine the
 current layout and examine how we can append additional features.
 
-## Creating a New Admin Experience
+The current admin experience offers us the ability to list the current users
+in the system. When we view this page we only have a list of email addresses
+of our users. It is hard to tell from this who are the admins of our system.
 
-The Spree admin experience looks great with the additions that we have made.
-But we want more control so it is time to explore overhauling the entire
-experience.
+To view if a user is an admin we need to access the details of each user. It
+would nice if we could include a simple flag or highlight if the user is an
+admin from the index page. This will allow us to at a glance see the admins
+within our system.
 
+* Overriding View Templates
+* Ruby Objects
 
+### Discussion:
 
-## Ruby
+* Open Classes
+* Monkeypatching
+* `class_eval` and `instance_eval`
 
-### Monkey Patching
+## Refining our Additions
 
-* Safety
-* Testing
-* Troubleshooting
+The Spree admin experience looks great with the addition that we have made.
+Now it is time to refine the experience and extract it into an extension.
 
-### Open Classes
+* Deface
+* Spree Extension Format
 
-* Class Eval
-* Instance Eval
+## Creating a Review System
 
-### Rails Commands
+The first spree extension that we created added very little to the current
+experience. We relied on the existing infrastructure and database with very
+few changes. Now we want to create an common extension that will require us
+to add additional database migrations, models, controllers, and views.
 
-## Spree
-
-### Extending
-
-Whether to deface or replace the entire view
+* Rails Generators
+* Migrations
+* Models, Controllers, and Views
