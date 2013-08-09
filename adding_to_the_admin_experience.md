@@ -292,3 +292,131 @@ of the users.
 ```
 <td><%= user.admin? %></td>
 ```
+
+### Understanding how `@collections` is set
+
+While reviewing the `Spree::Admin::UsersController` source we skipped over how
+the `@collection` variable was set within the index action. It seems to have
+happened as if by magic. Lets take some time to understand what is happening.
+
+On first examination it looks as though the `@collection` should be nil as it
+is used without it ever being set. There is no code within the `index` action
+that sets that value so we need to examine the various **before_filters** and
+see if they apply.
+
+[Before Filters](http://guides.rubyonrails.org/v3.2.13/action_controller_overview.html#filters) are methods that take place prior to
+the execution of the action. By default, when a before filter is defined it
+will affect all actions within the controller and any sub-classes of that
+controller. They can be scoped to only particular actions.
+
+Within the `UsersController` there are two before filters defined.
+
+* Open `app/controllers/spree/admin/users_controller.rb`:
+
+```ruby
+before_filter :check_json_authenticity, :only => :index
+before_filter :load_roles, :only => [:edit, :new, :update, :create, :generate_api_key, :clear_api_key]
+```
+
+The first filter is `:check_json_authenticity` which applies only to the
+**action**. Since we are calling the index action, this filter definitely acts
+before our action is called. So this filter may be setting up the `@collections`
+value. Though it does not seem likely based on the name.
+
+The second filter `:load_roles` applies in several other circumstances except
+for the **index** action so it does apply.
+
+So our only solid lead is the `:check_json_authenticity` filter. When we search
+through the remainder of the controller we are unable to find any mention of
+a method defined with this name. So where is this before filter defined?
+
+Ruby often times favors composition over inheritance, hence why you might often
+see an `include MODULENAME` or `extend MODULENAME` within a class, Rails
+controllers still often use inheritance to share functionality between
+controllers.
+
+Our `UsersController` is a subclass of the `ResourcesController` so any filters
+or methods defined within that controller are also present within the current
+controller. So it is time to find that controller.
+
+* Run `bundle open spree_backend`
+
+* Open the file `app/controllers/spree/admin/resource_controller.rb`
+
+Here again we are unable to find any methods defined with the name
+`check_json_authenticity`. However, we did find a new before filter defined.
+
+```ruby
+before_filter :load_resource, :except => [:update_positions]
+```
+
+The method `load_resource` has a much more promising name. So lets forget our
+search for `check_json_authenticity` and instead focus on this method. Looking
+through the `ResourceController` we find a method named `load_resource` which
+defines several promising leads within it:
+
+```ruby
+def load_resource
+  if member_action?
+    @object ||= load_resource_instance
+
+    # call authorize! a third time (called twice already in Admin::BaseController)
+    # this time we pass the actual instance so fine-grained abilities can control
+    # access to individual records, not just entire models.
+    authorize! action, @object
+
+    instance_variable_set("@#{object_name}", @object)
+  else
+    @collection ||= collection
+
+    # note: we don't call authorize here as the collection method should use
+    # CanCan's accessible_by method to restrict the actual records returned
+
+    instance_variable_set("@#{controller_name}", @collection)
+  end
+end
+```
+
+The initial logic to check for a `member_action?` does not make a lot of sense
+to me but the fallback where the collection instance variable is assigned to
+the results of the collection method does make sense.
+
+```
+@collection ||= collection
+```
+
+Lets return to our original `UsersController` class and see if we can find
+a method with the name `collection`.
+
+* Open, within **spree_auth_devise** gem, the file
+  `app/controllers/spree/admin/users_controller.rb`
+
+
+Returning to our original `UsersController` there is a protected method defined
+with the name `collection`. Within it we can see `@collection` variable set
+in various instances based on the details of the request.
+
+So this solves the mystery of how the @collection is set. But within the view
+itself we used the variable `@users`. So that leaves us one more mystery.
+
+* Return to the file `app/controllers/spree/admin/resource_controller.rb`
+
+Later after the collection method has been called an instance variable is
+set which is based on the name of the current controller.
+
+```
+instance_variable_set("@#{controller_name}", @collection)
+```
+
+Essentially a Spree `ResourceController` is a controller which manages a
+collection of objects. Those objects can be referenced by `@collection` or
+by an instance variable based on the controller's name. In the case of our
+`UsersController`, the controller name is **users**, and thus the instance
+variable has been set.
+
+### Conclusion
+
+We were able to add a new field to our users' index page to allow us to see
+if a user is an admin. This at its heart was not a large feature but we
+were able to learn a lot about how the Spree source is structured and allowed
+to explore several of the controllers and views core to the Spree framework.
