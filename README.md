@@ -49,13 +49,18 @@ The Spree admin experience looks great with the addition that we have made.
 Now it is time to refine the experience and extract it into an extension.
 
 * Deface
-* Spree Extension Format
+
+## Spree Extension Format
+
+With our changes complete and refined it is time to package the entire
+experience into an extension which we can share with others and bring into our
+future Spree projects that may require it.
 
 ## Creating a Review System
 
 The first spree extension that we created added very little to the current
 experience. We relied on the existing infrastructure and database with very
-few changes. Now we want to create an common extension that will require us
+few changes. Now we want to create an extension that will require us
 to add additional database migrations, models, controllers, and views.
 
 * Rails Generators
