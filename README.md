@@ -56,6 +56,12 @@ With our changes complete and refined it is time to package the entire
 experience into an extension which we can share with others and bring into our
 future Spree projects that may require it.
 
+### Discussion
+
+* Gems and Gemspec
+* Bundler with paths and git repositories
+* Engines vs Plain Old Gems
+
 ## Creating a Review System
 
 The first spree extension that we created added very little to the current
