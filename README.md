@@ -62,12 +62,12 @@ future Spree projects that may require it.
 * Bundler with paths and git repositories
 * Engines vs Plain Old Gems
 
-## Creating a Review System
+## Creating a Theme System
 
 The first spree extension that we created added very little to the current
-experience. We relied on the existing infrastructure and database with very
-few changes. Now we want to create an extension that will require us
-to add additional database migrations, models, controllers, and views.
+experience. We relied on the existing infrastructure with very few changes.
+Now we want to create an extension that will require us to add additional
+database migrations, models, controllers, and views.
 
 * Rails Generators
 * Migrations
