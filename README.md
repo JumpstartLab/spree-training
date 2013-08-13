@@ -75,3 +75,24 @@ controllers and views.
 ### Discssion
 
 * Best Practices for Models, Views, and Controllers
+
+## Resources
+
+* [Ruby Styleguide](https://github.com/styleguide/ruby)
+* [Rails Guides](http://guides.rubyonrails.org/v3.2.13/)
+* [Rails API](http://api.rubyonrails.org/v3.2.13/)
+
+### Spree on JRuby
+
+Spree runs with JRuby but with some serious warts. A running server is available
+as a [branch](https://github.com/JumpstartLab/SpreeStore/tree/jruby) of the
+Spree Store project.
+
+The server will run but issues remain with the gem
+[Deface](https://github.com/spree/deface) and how it renders the content from
+the overrides.
+
+### Spree on Rails 4
+
+Spree is currently working towards supporting
+[Rails 4](https://github.com/spree/spree/tree/rails4).
