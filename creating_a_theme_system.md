@@ -376,28 +376,165 @@ redirect back to the edit page.
 
 Now if we attempt to set the background property it will be saved successfully.
 
-### Overriding our Base Theme with the Details
+### Overriding the Base Theme with a Style Tag
 
-With the details of our theme complete lets apply our theme to
+With our overrides defined we now need to add our style overrides to the page.
+The simpliest method would require us to define a style tag and add our custom
+styles to the page.
 
-We could override the layout and apply our settings within a style tag. An
-alternative would be to render a stylesheet and allow for our settings to
+The style tag that we define would need to be present on every page of the
+customer facing front end of our application. This means we need to override the
+core application layout that is defined in the **spree_frontend** gem.
+
+* Run `bundle open spree_frontend` and find `app/views/spree/layouts/spree_application.html.erb`.
+
+This is the core layout file that all of the front end view templates use. We
+need to copy the contents of this file into our projet and make the
+modifications to include our style tag.
+
+* Create, within our Spree application,
+  `app/views/spree/layouts/spree_application.html.erb` and copy the contents
+  of the original template file.
+
+Now we have a copy that will override the one defined within the gem. We can
+make changes to this one to include our special theme requirements. Lets add
+a partial, to the end of the body tag within the template, that will contain
+all of our style overrides.
+
+* Open `app/views/spree/layouts/spree_application.html.erb` and update the
+  template to add the following to the partial:
+
+```erb
+    <!-- all the tags and content prior to the this point -->
+    <script>
+      Spree.api_key = <%= raw(try_spree_current_user.try(:spree_api_key).to_s.inspect) %>;
+    </script>
+    <%= render partial: "spree/layouts/theme" %>
+  </body>
+</html>
+```
+
+* Create `app/views/spree/layouts/_theme.html.erb` and our style tag:
+
+```erb
+<style>
+  body {
+    background-color: <%= Spree::Config.theme_background_color %>;
+  }
+</style>
+```
+
+* Visit `http://localhost:3000/`
+
+The new background settings is applied.
+
+If you return to the admin panel, make adjustments to the background and revisit
+the root path you should see the background color change appropriately.
+
+This solution does raise some concerns. To provide the theme support we require
+we had to override a fundamental template to the Spree Store. While we did not
+augment the contents of the template all that greatly we would need to be aware
+of changes of this core template as future versions of Spree are released.
+
+In the next two sections we explore some possible alternatives to this very
+brutal approach. Unfortunately none of them will produce the results we are
+after.
+
+### Overriding the Base Theme with Deface
+
+An alternative would be to use Deface to find the body tag and append a style
+tag with our data.
+
+> This path to override style ultimately does not work, however, it may be
+> useful in seeing for yourself that this path does not work in this instance.
+
+* Create `app/overrides/theme.rb` and add the following:
+
+```ruby
+Deface::Override.new virtual_path: "spree/layouts/spree_application",
+  name: "theme",
+  insert_bottom: "body",
+  text: %{
+<style>
+  body {
+    background-color: #{Spree::Config.theme_background_color};
+  }
+</style>
+}
+```
+
+The new background setting is applied.
+
+However, if you change the value again and reload the page your new settings
+will not take effect. It seems that the deface overrides do not recompile if
+the data creating those templates is modified.
+
+While this is a very minimal invasive tactic of implmenting an override, it
+appears it is one that will not work unless we plan on restarting the server
+every time the styles are changed.
+
+### Overriding the Base Theme with a Stylesheet
+
+An alternative would be to render a stylesheet and allow for our settings to
 be applied in-line to the stylesheet.
 
+> This path to override style ultimately has problems but provides some useful
+> instruction on how you can apply **erb** templating to even stylesheets.
+
 Stylesheets within the asset pipeline can have the **erb** extension applied
-similar to how we have previously defined templates. Rails will process these
-stylesheets first as **erb**, processing any of our escape tags which we will
-use to apply our settings.
+similar to how we defined templates. Rails will process these stylesheets first
+as **erb**, processing any of our escape tags which we will use to apply our
+settings.
+
+* Create `app/assets/stylesheets/theme.css.erb` and add the following:
+
+```css
+body {
+  background-color: <%= Spree::Config.theme_background_color %>;
+}
+```
+
+* View `http://localhost:3000/admin/theme_settings/edit`
+
+The new background setting is applied.
+
+However, if you change the value again and reload the page your new settings
+will not take effect. This is because Rails only recompiles the assets based on
+changes to stylesheet. So if that file changes, if the content of the file is
+modified, then the new value will be loaded.
+
+This unfortunately barely works in development mode and will not work in
+production mode where the assets are precompiled. So this method of providing
+theme overrides unfortunately would not work in the long term. But it is an
+interesting example of being able to use erb templating within stylesheets.
 
 ### Adding Another Theme Property
 
+Select another property that you would like to theme within your Spree
+application and implement it.
+
+> This section is for exploration and allows you the opportunity to reinforce
+> the concepts we have finished demonstrating.
+
+### Adding Yet Another Theme Property
+
 Our overly simple property field does not immediately provide a great
 interface for interacting with all the possible fields that we may want to
-provide support to customize. Every time we add or remove a setting we need
-to add or create a property. Instead we should probably store all the properties
+provide support to customize. Every time we add/remove a setting we need
+to add or create a property. Instead we could store all the properties
 within one field and build a plain old Ruby object to wrap the results.
+
+> This section is for exploration and allows you the opportunity to explore
+> object-orient programming concepts.
 
 ### Extracting Into An Extension
 
 Now that we are done with our theming it is time to extract all the contents
 of the theme out of our current Spree project and move it into an extension.
+
+> This section is for exploration and allows you the opportunity to reinforce
+> the concepts of creating an extension.
+
+* While creating the extension remember that we have additional routing
+  information that needs to be transfered into the extension along with all
+  the source code.
