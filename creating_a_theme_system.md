@@ -538,3 +538,11 @@ of the theme out of our current Spree project and move it into an extension.
 * While creating the extension remember that we have additional routing
   information that needs to be transfered into the extension along with all
   the source code.
+
+### Conclusion
+
+We were able to add an entirely new configuration menu with its new route,
+controller and associated actions. We leveraged the existing preferences
+data structure to allow us the ability to generate a theme system which would
+now allow an admin to configure the look of the site through their admin
+interface.
